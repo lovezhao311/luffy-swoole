@@ -1,0 +1,25 @@
+{
+    "name": "luffyzhao/luffy-swoole",
+    "type": "project",
+    "keywords": [
+        "framework",
+        "swoole",
+        "ORM"
+    ],
+    "authors": [
+        {
+            "name": "luffyzhao",
+            "email": "luffyzhao@vip.126.com"
+        }
+    ],
+    "license": "Apache-2.0",
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "luffySwoole\\": "system/",
+            "app\\":"application/"
+        }
+    }
+}
