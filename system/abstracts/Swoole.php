@@ -1,9 +1,10 @@
 <?php
-namespace luffySwoole\abstracts;
+namespace luffyzhao\abstracts;
 
-use luffySwoole\interfaces\Swoole as SwooleInterface;
-use luffyzhao\librarys\Error;
+use luffyzhao\Error;
+use luffyzhao\interfaces\Swoole as SwooleInterface;
 use luffyzhao\librarys\route\Task;
+use Swoole\Server;
 
 abstract class Swoole implements SwooleInterface
 {
@@ -19,6 +20,36 @@ abstract class Swoole implements SwooleInterface
         "dispatch_mode" => 2,
         "log_file" => 'swoole.log',
     ];
+
+    protected $swoole = null;
+
+    abstract protected function setSwoole();
+
+    public function __construct()
+    {
+        $this->setSwoole();
+        $this->initOn();
+        $this->swoole->start();
+    }
+    /**
+     * 注册Server的事件通用回调函数
+     * @return [type] [description]
+     */
+    protected function initOn()
+    {
+        $this->swoole->on('start', [$this, 'onStart']);
+        $this->swoole->on('workerStart', [$this, 'onWorkerStart']);
+        $this->swoole->on('workerStop', [$this, 'onWorkerStop']);
+        $this->swoole->on('shutdown', [$this, 'onShutdown']);
+        $this->swoole->on('workerError', [$this, 'onWorkerError']);
+        $this->swoole->on('task', [$this, 'onTask']);
+        $this->swoole->on('finish', [$this, 'onFinish']);
+    }
+
+    public function getSwoole()
+    {
+        return $this->swoole;
+    }
     /**
      * Server启动时调用
      * @method   onStart
@@ -99,7 +130,10 @@ abstract class Swoole implements SwooleInterface
      * @param    int                      $fromId ID线程
      * @return   viod
      */
-    abstract public function onConnect(Server $server, int $fd, int $fromId);
+    public function onConnect(Server $server, int $fd, int $fromId)
+    {
+
+    }
     /**
      * 接收到数据时调用(除udp外)
      * @method   onReceive
@@ -136,7 +170,10 @@ abstract class Swoole implements SwooleInterface
      * @param    int                      $fromId    ID线程
      * @return   viod
      */
-    abstract public function onClose(Server $server, int $fd, int $fromId);
+    public function onClose(Server $server, int $fd, int $fromId)
+    {
+
+    }
     /**
      * 当缓存区达到最高水位时触发此事件
      * @method   onBufferFull
@@ -271,7 +308,7 @@ abstract class Swoole implements SwooleInterface
     protected function workerStartInit()
     {
         // 加载vendor
-        require realpath(dirname(__FILE__)) . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . 'vendor/autoload.php';
+        require realpath(dirname(__FILE__)) . '/../../vendor/autoload.php';
         // 注册错误
         Error::register();
     }
@@ -286,12 +323,13 @@ abstract class Swoole implements SwooleInterface
     {
         $method = $route->getMethod();
         $uri = $route->getRoute();
-        $controller = "\\app\\" . ucfirst($method) . "\\" . ucfirst($uri['controller']);
+        $controller = "\\app\\" . $method . "\\" . ucfirst($uri['controller']);
         if (class_exists($controller)) {
             $class = new $controller;
             if (method_exists($class, $uri['action'])) {
-                $class->{$uri['action']}();
+                return $class->{$uri['action']}();
             }
         }
+        throw new \Exception("controller:[{$uri['controller']}] action:[{$uri['action']}] not exists.");
     }
 }

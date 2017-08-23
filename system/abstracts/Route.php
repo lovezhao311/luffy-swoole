@@ -1,15 +1,15 @@
 <?php
-namespace luffySwoole\abstracts;
+namespace luffyzhao\abstracts;
 
-use luffySwoole\interfaces\Route as RouteInterface;
 use luffyzhao\Exception;
+use luffyzhao\interfaces\Route as RouteInterface;
 
 abstract class Route implements RouteInterface
 {
     /**
      * @var object 对象实例
      */
-    protected static $instance;
+    protected static $instance = null;
     /**
      * 路由参数
      * @var array
@@ -32,7 +32,7 @@ abstract class Route implements RouteInterface
      */
     protected function __construct($data = [])
     {
-
+        $this->resolve($data);
     }
     /**
      * 初始化
@@ -55,7 +55,7 @@ abstract class Route implements RouteInterface
      */
     public function getRoute()
     {
-        $this->route;
+        return $this->route;
     }
     /**
      * 获取请求参数(请求内容)
@@ -95,8 +95,8 @@ abstract class Route implements RouteInterface
                 return $this->getDefaultRoute();
             }
             return [
-                'controller' => isset($data['route']['controller']) ?? 'index',
-                'action' => isset($data['route']['action']) ?? 'index',
+                'controller' => isset($data['route']['controller']) && !empty($data['route']['controller']) ? $data['route']['controller'] : 'index',
+                'action' => isset($data['route']['action']) && !empty($data['route']['action']) ? $data['route']['action'] : 'index',
             ];
         } else {
             throw new Exception('route error.');
@@ -135,7 +135,6 @@ abstract class Route implements RouteInterface
         }
         // 路由
         $this->route = $this->resolveRoute($data);
-
         // 参数
         $this->data = $this->resolveData($data);
 

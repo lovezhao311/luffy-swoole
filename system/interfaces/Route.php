@@ -1,5 +1,5 @@
 <?php
-namespace luffySwoole\interfaces;
+namespace luffyzhao\interfaces;
 
 interface Route
 {

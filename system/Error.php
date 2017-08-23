@@ -10,7 +10,7 @@ class Error
      * 注册异常处理
      * @return void
      */
-    public static function register($parameter)
+    public static function register()
     {
         error_reporting(E_ALL);
         set_error_handler([__CLASS__, 'appError']);
@@ -37,7 +37,7 @@ class Error
      * @param    string                   $errstr [description]
      * @return   [type]                           [description]
      */
-    public function appError(int $errno, string $errstr)
+    public static function appError(int $errno, string $errstr)
     {
         throw new Exception($errstr, $errno);
     }
@@ -48,10 +48,10 @@ class Error
      * @param    string                   $value [description]
      * @return   [type]                          [description]
      */
-    public function appShutdown()
+    public static function appShutdown()
     {
         if (!is_null($error = error_get_last()) && self::isFatal($error['type'])) {
-            // 将错误信息托管至think\ErrorException
+            // 将错误信息托管
             throw new Exception($error['type'], $error['message'], $error['file'], $error['line']);
         }
     }

@@ -1,7 +1,7 @@
 <?php
 namespace luffyzhao\librarys\route;
 
-use luffySwoole\abstracts\Route;
+use luffyzhao\abstracts\Route;
 
 class Task extends Route
 {
