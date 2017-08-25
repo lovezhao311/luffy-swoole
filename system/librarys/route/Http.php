@@ -9,18 +9,27 @@ class Http extends Route implements RouteInterface
 {
     protected $method = 'http';
 
+    protected $files = [];
+
     protected function __construct(Request $request)
     {
         $data = [];
-        $data['data']['get'] = isset($request->get) ? $request->get : [];
-        $data['data']['post'] = isset($request->post) ? $request->post : [];
-        $data['data']['files'] = isset($request->files) ? $request->files : [];
-        $uri = parse_url(isset($request->request_uri) ? $request->request_uri : '');
 
-        if ('/index.php' == $uri['path']) {
-            $this->resolve($data);
+        if ($request->server['request_method'] == 'GET') {
+            $data['data'] = isset($request->get) ? $request->get : [];
         } else {
-            $request = explode('/', trim($uri['path'], '/'), 3);
+            $data['data'] = isset($request->post) ? $request->post : [];
+        }
+        // 文件
+        $this->files = isset($request->files) ? $request->files : [];
+
+        $uri = isset($request->server['request_uri']) ? $request->server['request_uri'] : $request->server['path_info'];
+        if ('/index.php' == $uri) {
+            $this->resolve($data);
+        } else if ($uri == '/favicon.ico') {
+            throw new \Exception("favicon.ico");
+        } else {
+            $request = explode('/', trim($uri, '/'), 3);
 
             $data['route'] = [
                 'controller' => isset($request[0]) ? $request[0] : null,
@@ -30,7 +39,14 @@ class Http extends Route implements RouteInterface
             $this->resolve($data);
         }
     }
-
+    /**
+     * 获取文件
+     * @return [type] [description]
+     */
+    public function getFiles()
+    {
+        return $this->files;
+    }
     /**
      * 获取路由参数
      * @method   getRoute

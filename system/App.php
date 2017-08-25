@@ -2,7 +2,6 @@
 namespace luffyzhao;
 
 use luffyzhao\abstracts\Swoole;
-use Swoole\Server;
 
 class App
 {
@@ -53,14 +52,21 @@ class App
      */
     protected function __construct()
     {}
-
+    /**
+     * 获取server
+     * @return [type] [description]
+     */
+    public function getServer()
+    {
+        return $this->server->server();
+    }
     /**
      * 设置server类型
      * @method   setServer
      * @DateTime 2017-08-25T12:14:29+0800
      * @param    Server                   $server [description]
      */
-    public function setServer(Server $server)
+    public function setServer(Swoole $server)
     {
         $this->server = $server;
     }

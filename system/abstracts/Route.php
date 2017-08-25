@@ -80,7 +80,9 @@ abstract class Route
      */
     protected function resolveData($data)
     {
-        if (is_array($data)) {
+        if (empty($data)) {
+            return [];
+        } else if (is_array($data)) {
             // 转过来是数组
             if (!isset($data['data'])) {
                 return [];

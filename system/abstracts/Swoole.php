@@ -90,7 +90,7 @@ abstract class Swoole
      */
     public function onTimer(Server $server, int $interval)
     {
-
+        $this->msg('timer :' . $interval);
     }
     /**
      * 有新连接进入时调用
@@ -183,10 +183,8 @@ abstract class Swoole
     {
         $this->msg('task start: taskId:' . $taskId . ' workerId:' . $workerId . ' data:' . $data);
         try {
-            ob_start();
             $route = Task::instance($data);
             $this->routeRun($route);
-            ob_end_clean();
             return true;
         } catch (\Exception $e) {
             $this->msg('task error:' . $e->getMessage());
@@ -268,7 +266,7 @@ abstract class Swoole
      */
     protected function msg($msg)
     {
-        print '[' . date('Y-m-d H:i:s') . '] ' . $msg . "\n";
+        echo '[' . date('Y-m-d H:i:s') . '] ' . $msg . "\n";
     }
     /**
      * 子进程启动时全局操作

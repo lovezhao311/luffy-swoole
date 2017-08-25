@@ -52,7 +52,7 @@ class Error
     {
         if (!is_null($error = error_get_last()) && self::isFatal($error['type'])) {
             // 将错误信息托管
-            throw new Exception($error['type'], $error['message'], $error['file'], $error['line']);
+            throw new Exception($error['message']);
         }
     }
     /**
