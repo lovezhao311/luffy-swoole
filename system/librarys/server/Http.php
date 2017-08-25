@@ -2,36 +2,47 @@
 namespace luffyzhao\librarys\server;
 
 use luffyzhao\abstracts\Swoole;
+use luffyzhao\interfaces\Swoole as SwooleInterface;
 use luffyzhao\librarys\route\Http as HttpRoute;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 
-class Http extends Swoole
+class Http extends Swoole implements SwooleInterface
 {
     /**
      * 设置server
      */
-    protected function setSwoole()
+    public function server($host = '127.0.0.1', $port = 9501)
     {
-        $this->swoole = new \Swoole\Http\Server('127.0.0.1', 9501);
-        $this->swoole->set([
-            'daemonize' => false,
-            'worker_num' => 4,
-            'max_request' => 1000,
-            'task_worker_num' => 2,
-            'task_max_request' => 1000,
-            'dispatch_mode' => 2,
-            'log_file' => './swoole.log',
-        ]);
+        if (is_null($this->swoole)) {
+            $this->swoole = new \Swoole\Http\Server($host, $port);
+        }
+        return $this->swoole;
     }
-
+    /**
+     * 设置
+     * @method   serverSet
+     * @DateTime 2017-08-25T11:47:48+0800
+     * @return   [type]                   [description]
+     */
+    public function serverSet($config = [])
+    {
+        $this->swoole->set($config);
+    }
     /**
      * 注册Server的事件通用回调函数
      * @return [type] [description]
      */
-    protected function initOn()
+    protected function on()
     {
-        parent::initOn();
+        $this->swoole->on('start', [$this, 'onStart']);
+        $this->swoole->on('workerStart', [$this, 'onWorkerStart']);
+        $this->swoole->on('workerStop', [$this, 'onWorkerStop']);
+        $this->swoole->on('shutdown', [$this, 'onShutdown']);
+        $this->swoole->on('workerError', [$this, 'onWorkerError']);
+        $this->swoole->on('task', [$this, 'onTask']);
+        $this->swoole->on('finish', [$this, 'onFinish']);
+        //
         $this->swoole->on('request', [$this, 'onRequest']);
     }
     /**

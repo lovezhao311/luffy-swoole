@@ -1,6 +1,11 @@
 <?php
 include_once '../vendor/autoload.php';
 
-use luffyzhao\Server;
+use luffyzhao\App;
+use luffyzhao\librarys\server\Http;
 
-Server::instance(\luffyzhao\librarys\server\Http::class);
+$app = App::instance();
+$app->setServer(new Http);
+$app->setConfig([
+]);
+$app->start();

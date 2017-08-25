@@ -2,54 +2,25 @@
 namespace luffyzhao\abstracts;
 
 use luffyzhao\Error;
-use luffyzhao\interfaces\Swoole as SwooleInterface;
 use luffyzhao\librarys\route\Task;
 use Swoole\Server;
 
-abstract class Swoole implements SwooleInterface
+abstract class Swoole
 {
-    protected $config = [
-        "process_title" => 'luffyzhao-swoole',
-        "listen" => '127.0.0.1',
-        "port" => 9501,
-        "worker_num" => 8,
-        "daemonize" => false,
-        "max_request" => 0,
-        "task_worker_num" => 4,
-        "task_max_request" => 4,
-        "dispatch_mode" => 2,
-        "log_file" => 'swoole.log',
-    ];
-
     protected $swoole = null;
 
-    abstract protected function setSwoole();
-
-    public function __construct()
+    /**
+     * 启动server
+     * @method   start
+     * @DateTime 2017-08-25T12:10:41+0800
+     * @return   [type]                   [description]
+     */
+    public function start()
     {
-        $this->setSwoole();
-        $this->initOn();
+        $this->on();
         $this->swoole->start();
     }
-    /**
-     * 注册Server的事件通用回调函数
-     * @return [type] [description]
-     */
-    protected function initOn()
-    {
-        $this->swoole->on('start', [$this, 'onStart']);
-        $this->swoole->on('workerStart', [$this, 'onWorkerStart']);
-        $this->swoole->on('workerStop', [$this, 'onWorkerStop']);
-        $this->swoole->on('shutdown', [$this, 'onShutdown']);
-        $this->swoole->on('workerError', [$this, 'onWorkerError']);
-        $this->swoole->on('task', [$this, 'onTask']);
-        $this->swoole->on('finish', [$this, 'onFinish']);
-    }
 
-    public function getSwoole()
-    {
-        return $this->swoole;
-    }
     /**
      * Server启动时调用
      * @method   onStart
@@ -59,8 +30,8 @@ abstract class Swoole implements SwooleInterface
      */
     public function onStart(Server $server)
     {
-        $this->msg('start:' . $this->config['process_title']);
-        cli_set_process_title($this->config['process_title']);
+        $this->msg('start:' . 'luffyzhao-swoole');
+        cli_set_process_title('luffyzhao-swoole');
     }
     /**
      * Server结束时调用
@@ -71,7 +42,7 @@ abstract class Swoole implements SwooleInterface
      */
     public function onShutdown(Server $server)
     {
-        $this->msg('shutdown:' . $this->config['process_title']);
+        $this->msg('shutdown:' . 'luffyzhao-swoole');
     }
     /**
      * 子进程启动时调用
@@ -86,10 +57,10 @@ abstract class Swoole implements SwooleInterface
         $this->workerStartInit();
         if ($server->taskworker) {
             $this->msg('task start,id:' . $workerId);
-            cli_set_process_title("{$this->config['process_title']}-task-{$workerId}");
+            cli_set_process_title("{'luffyzhao-swoole'}-task-{$workerId}");
         } else {
             $this->msg('worker start,id:' . $workerId);
-            cli_set_process_title("{$this->config['process_title']}-worker-{$workerId}");
+            cli_set_process_title("{'luffyzhao-swoole'}-worker-{$workerId}");
         }
     }
     /**
