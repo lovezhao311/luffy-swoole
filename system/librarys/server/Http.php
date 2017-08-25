@@ -2,12 +2,11 @@
 namespace luffyzhao\librarys\server;
 
 use luffyzhao\abstracts\Swoole;
-use luffyzhao\interfaces\Swoole as SwooleInterface;
 use luffyzhao\librarys\route\Http as HttpRoute;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 
-class Http extends Swoole implements SwooleInterface
+class Http extends Swoole
 {
     /**
      * 设置server
@@ -55,7 +54,7 @@ class Http extends Swoole implements SwooleInterface
     {
         try {
             $route = HttpRoute::instance($request);
-            $result = $this->routeRun($route);
+            $result = $route->run();
         } catch (\Exception $e) {
             $result = $e->getMessage();
         }

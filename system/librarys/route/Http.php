@@ -2,10 +2,9 @@
 namespace luffyzhao\librarys\route;
 
 use luffyzhao\abstracts\Route;
-use luffyzhao\interfaces\Route as RouteInterface;
 use Swoole\Http\Request;
 
-class Http extends Route implements RouteInterface
+class Http extends Route
 {
     protected $method = 'http';
 

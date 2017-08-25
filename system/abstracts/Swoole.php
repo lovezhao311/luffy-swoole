@@ -1,6 +1,7 @@
 <?php
 namespace luffyzhao\abstracts;
 
+use luffyzhao\Debug;
 use luffyzhao\Error;
 use luffyzhao\librarys\route\Task;
 use Swoole\Server;
@@ -30,7 +31,7 @@ abstract class Swoole
      */
     public function onStart(Server $server)
     {
-        $this->msg('start:' . 'luffyzhao-swoole');
+        Debug::info('start:' . 'luffyzhao-swoole');
         cli_set_process_title('luffyzhao-swoole');
     }
     /**
@@ -42,7 +43,7 @@ abstract class Swoole
      */
     public function onShutdown(Server $server)
     {
-        $this->msg('shutdown:' . 'luffyzhao-swoole');
+        Debug::info('shutdown:' . 'luffyzhao-swoole');
     }
     /**
      * 子进程启动时调用
@@ -56,10 +57,10 @@ abstract class Swoole
     {
         $this->workerStartInit();
         if ($server->taskworker) {
-            $this->msg('task start,id:' . $workerId);
+            Debug::info('task start,id:' . $workerId);
             cli_set_process_title("{'luffyzhao-swoole'}-task-{$workerId}");
         } else {
-            $this->msg('worker start,id:' . $workerId);
+            Debug::info('worker start,id:' . $workerId);
             cli_set_process_title("{'luffyzhao-swoole'}-worker-{$workerId}");
         }
     }
@@ -74,9 +75,9 @@ abstract class Swoole
     public function onWorkerStop(Server $server, int $workerId)
     {
         if ($server->taskworker) {
-            $this->msg('task stop,id:' . $workerId);
+            Debug::info('task stop,id:' . $workerId);
         } else {
-            $this->msg('worker stop,id:' . $workerId);
+            Debug::info('worker stop,id:' . $workerId);
         }
     }
     /**
@@ -90,7 +91,7 @@ abstract class Swoole
      */
     public function onTimer(Server $server, int $interval)
     {
-        $this->msg('timer :' . $interval);
+        Debug::info('timer :' . $interval);
     }
     /**
      * 有新连接进入时调用
@@ -155,7 +156,7 @@ abstract class Swoole
      */
     public function onBufferFull(Server $server, int $fd)
     {
-        $this->msg('the send queue is full!');
+        Debug::info('the send queue is full!');
     }
     /**
      * 当缓存区低于最低水位线时触发此事件
@@ -181,13 +182,13 @@ abstract class Swoole
      */
     public function onTask(Server $server, int $taskId, int $workerId, string $data)
     {
-        $this->msg('task start: taskId:' . $taskId . ' workerId:' . $workerId . ' data:' . $data);
+        Debug::info('task start: taskId:' . $taskId . ' workerId:' . $workerId . ' data:' . $data);
         try {
             $route = Task::instance($data);
-            $this->routeRun($route);
+            $route->run();
             return true;
         } catch (\Exception $e) {
-            $this->msg('task error:' . $e->getMessage());
+            Debug::info('task error:' . $e->getMessage());
         }
     }
     /**
@@ -201,7 +202,7 @@ abstract class Swoole
      */
     public function onFinish(Server $server, int $taskId, string $data)
     {
-        $this->msg('task finish: taskId:' . $taskId . ' workerId:' . $server->worker_id . ' data:' . $data);
+        Debug::info('task finish: taskId:' . $taskId . ' workerId:' . $server->worker_id . ' data:' . $data);
     }
     /**
      * 当工作进程收到由sendMessage发送的管道消息时会触发onPipeMessage事件
@@ -229,9 +230,9 @@ abstract class Swoole
     public function onWorkerError(Server $server, int $workerId, int $workerPid, int $exitCode)
     {
         if ($server->taskworker) {
-            $this->msg('task error, exit code ' . $exitCode . ',id ' . $workerId . ',Pid ' . $workerPid);
+            Debug::info('task error, exit code ' . $exitCode . ',id ' . $workerId . ',Pid ' . $workerPid);
         } else {
-            $this->msg('worker error, exit code ' . $exitCode . 'id ' . $workerId . ' ,Pid ' . $workerPid);
+            Debug::info('worker error, exit code ' . $exitCode . 'id ' . $workerId . ' ,Pid ' . $workerPid);
         }
     }
     /**
@@ -256,18 +257,6 @@ abstract class Swoole
     {
 
     }
-
-    /**
-     * 打印日志
-     * @method   msg
-     * @DateTime 2017-08-22T14:51:09+0800
-     * @param    string                   $msg 日志
-     * @return   viod
-     */
-    protected function msg($msg)
-    {
-        echo '[' . date('Y-m-d H:i:s') . '] ' . $msg . "\n";
-    }
     /**
      * 子进程启动时全局操作
      * @method   init
@@ -280,25 +269,5 @@ abstract class Swoole
         require realpath(dirname(__FILE__)) . '/../../vendor/autoload.php';
         // 注册错误
         Error::register();
-    }
-    /**
-     * go go go
-     * @method   routeRun
-     * @DateTime 2017-08-22T17:01:32+0800
-     * @param    [type]                   $route [description]
-     * @return   [type]                          [description]
-     */
-    protected function routeRun($route)
-    {
-        $method = $route->getMethod();
-        $uri = $route->getRoute();
-        $controller = "\\app\\" . $method . "\\" . ucfirst($uri['controller']);
-        if (class_exists($controller)) {
-            $class = new $controller;
-            if (method_exists($class, $uri['action'])) {
-                return $class->{$uri['action']}();
-            }
-        }
-        throw new \Exception("controller:[{$uri['controller']}] action:[{$uri['action']}] not exists.");
     }
 }

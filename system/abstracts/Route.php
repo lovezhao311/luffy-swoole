@@ -41,10 +41,10 @@ abstract class Route
      */
     public static function instance($data = [])
     {
-        if (is_null(self::$instance)) {
-            self::$instance = new static($data);
+        if (!isset(self::$instance[static::class])) {
+            self::$instance[static::class] = new static($data);
         }
-        return self::$instance;
+        return self::$instance[static::class];
     }
 
     /**
@@ -122,5 +122,22 @@ abstract class Route
             'controller' => 'index',
             'action' => 'index',
         ];
+    }
+    /**
+     *路由run
+     * @return [type] [description]
+     */
+    public function run()
+    {
+        $method = $this->getMethod();
+        $uri = $this->getRoute();
+        $controller = "\\app\\" . $method . "\\" . ucfirst($uri['controller']);
+        if (class_exists($controller)) {
+            $class = new $controller;
+            if (method_exists($class, $uri['action'])) {
+                return $class->{$uri['action']}();
+            }
+        }
+        throw new \Exception("controller:[{$uri['controller']}] action:[{$uri['action']}] not exists.");
     }
 }

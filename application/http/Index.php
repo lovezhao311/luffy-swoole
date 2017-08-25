@@ -1,20 +1,18 @@
 <?php
 namespace app\http;
 
+use luffyzhao\abstracts\Core;
 use luffyzhao\App;
 
 /**
  *
  */
-class Index
+class Index extends Core
 {
     public function index()
     {
-        $server = App::instance()->getServer();
-        $server->task('');
-        $server->after(1000, function () {
-            echo time() . " i'm after-1\n";
-        });
+        $this->task('index/index');
+        $this->after('index/index', 1000);
         return time() . " i'm http-1\n";
     }
 }

@@ -6,5 +6,5 @@ use luffyzhao\librarys\server\Http;
 
 $app = App::instance();
 $app->setServer(new Http);
-$app->setConfig([]);
+$app->setConfig(['set' => ['log_file' => 's.log']]);
 $app->start();

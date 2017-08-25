@@ -3,9 +3,10 @@ namespace luffyzhao\librarys\route;
 
 use luffyzhao\abstracts\Route;
 
-class Task extends Route
+class After extends Route
 {
-    protected $method = 'task';
+
+    protected $method = 'after';
 
     /**
      * 获取路由参数

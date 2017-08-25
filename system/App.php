@@ -26,7 +26,7 @@ class App
             "daemonize" => false,
             "max_request" => 0,
             "task_worker_num" => 4,
-            "task_max_request" => 4,
+            "task_max_request" => 0,
             "dispatch_mode" => 2,
             "log_file" => 'swoole.log',
         ],
@@ -78,6 +78,9 @@ class App
      */
     public function setConfig(array $config)
     {
+        if (isset($config['set'])) {
+            $config['set'] = array_merge($this->config['set'], $config['set']);
+        }
         $this->config = array_merge($this->config, $config);
     }
     /**
