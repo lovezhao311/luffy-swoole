@@ -11,13 +11,31 @@ abstract class Swoole
     protected $swoole = null;
 
     /**
+     * swoole配置
+     * @var array
+     */
+    protected $config = [];
+
+    /**
+     * 设置
+     * @method   serverSet
+     * @DateTime 2017-08-25T11:47:48+0800
+     * @return   [type]                   [description]
+     */
+    public function serverSet(array $config = [])
+    {
+        $this->config = array_merge($this->config, $config);
+    }
+    /**
      * 启动server
      * @method   start
      * @DateTime 2017-08-25T12:10:41+0800
      * @return   [type]                   [description]
      */
-    public function start()
+    public function start($host='127.0.0.1', $port=9501, $mode=SWOOLE_PROCESS, $sockType=SWOOLE_SOCK_TCP)
     {
+        $this->server($host, $port, $mode, $sockType);
+        $this->swoole->set($this->config);
         $this->on();
         $this->swoole->start();
     }
@@ -58,10 +76,10 @@ abstract class Swoole
         $this->workerStartInit();
         if ($server->taskworker) {
             Debug::info('task start,id:' . $workerId);
-            cli_set_process_title("{'luffyzhao-swoole'}-task-{$workerId}");
+            cli_set_process_title("luffyzhao-swoole-task-{$workerId}");
         } else {
             Debug::info('worker start,id:' . $workerId);
-            cli_set_process_title("{'luffyzhao-swoole'}-worker-{$workerId}");
+            cli_set_process_title("luffyzhao-swoole-worker-{$workerId}");
         }
     }
     /**
@@ -74,11 +92,7 @@ abstract class Swoole
      */
     public function onWorkerStop(Server $server, int $workerId)
     {
-        if ($server->taskworker) {
-            Debug::info('task stop,id:' . $workerId);
-        } else {
-            Debug::info('worker stop,id:' . $workerId);
-        }
+        Debug::info('stop,id:' . $workerId);
     }
     /**
      * 定时器触发时调用
@@ -184,7 +198,7 @@ abstract class Swoole
     {
         Debug::info('task start: taskId:' . $taskId . ' workerId:' . $workerId . ' data:' . $data);
         try {
-            $route = Task::instance($data);
+            $route = new Task($data);
             $route->run();
             return true;
         } catch (\Exception $e) {
@@ -229,11 +243,7 @@ abstract class Swoole
      */
     public function onWorkerError(Server $server, int $workerId, int $workerPid, int $exitCode)
     {
-        if ($server->taskworker) {
-            Debug::info('task error, exit code ' . $exitCode . ',id ' . $workerId . ',Pid ' . $workerPid);
-        } else {
-            Debug::info('worker error, exit code ' . $exitCode . 'id ' . $workerId . ' ,Pid ' . $workerPid);
-        }
+        Debug::info(' error, exit code ' . $exitCode . ',id ' . $workerId . ',Pid ' . $workerPid);
     }
     /**
      * 管理进程启动时调用

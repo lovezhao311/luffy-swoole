@@ -3,6 +3,7 @@ namespace luffyzhao\librarys\route;
 
 use luffyzhao\abstracts\Route;
 use Swoole\Http\Request;
+use luffyzhao\Debug;
 
 class Http extends Route
 {
@@ -10,7 +11,7 @@ class Http extends Route
 
     protected $files = [];
 
-    protected function __construct(Request $request)
+    public function __construct(Request $request)
     {
         $data = [];
 
@@ -23,6 +24,9 @@ class Http extends Route
         $this->files = isset($request->files) ? $request->files : [];
 
         $uri = isset($request->server['request_uri']) ? $request->server['request_uri'] : $request->server['path_info'];
+
+        Debug::info($uri) ;
+
         if ('/index.php' == $uri) {
             $this->resolve($data);
         } else if ($uri == '/favicon.ico') {

@@ -6,10 +6,6 @@ use luffyzhao\Exception;
 abstract class Route
 {
     /**
-     * @var object 对象实例
-     */
-    protected static $instance = null;
-    /**
      * 路由参数
      * @var array
      */
@@ -29,22 +25,9 @@ abstract class Route
      * @access protected
      * @param array $data 参数
      */
-    protected function __construct($data = [])
+    public function __construct($data = [])
     {
         $this->resolve($data);
-    }
-    /**
-     * 初始化
-     * @access public
-     * @param array $data 参数
-     * @return luffyzhao\librarys\route\Task
-     */
-    public static function instance($data = [])
-    {
-        if (!isset(self::$instance[static::class])) {
-            self::$instance[static::class] = new static($data);
-        }
-        return self::$instance[static::class];
     }
 
     /**
@@ -164,11 +147,11 @@ abstract class Route
         $uri = $this->getRoute();
         $controller = "\\app\\" . $method . "\\" . ucfirst($uri['controller']);
         if (class_exists($controller)) {
-            $class = new $controller;
+            $class = new $controller($this);
             if (method_exists($class, $uri['action'])) {
                 return $class->{$uri['action']}();
             }
         }
-        throw new \Exception("controller:[{$uri['controller']}] action:[{$uri['action']}] not exists.");
+        throw new Exception("controller:[{$uri['controller']}] action:[{$uri['action']}] not exists.",404);
     }
 }

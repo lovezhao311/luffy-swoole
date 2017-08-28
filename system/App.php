@@ -14,23 +14,6 @@ class App
      * @var null
      */
     protected $server = null;
-    /**
-     * 配置
-     * @var array
-     */
-    protected $config = [
-        "listen" => '127.0.0.1',
-        "port" => 9501,
-        "set" => [
-            "worker_num" => 8,
-            "daemonize" => false,
-            "max_request" => 0,
-            "task_worker_num" => 4,
-            "task_max_request" => 0,
-            "dispatch_mode" => 2,
-            "log_file" => 'swoole.log',
-        ],
-    ];
 
     /**
      * 初始化
@@ -78,10 +61,7 @@ class App
      */
     public function setConfig(array $config)
     {
-        if (isset($config['set'])) {
-            $config['set'] = array_merge($this->config['set'], $config['set']);
-        }
-        $this->config = array_merge($this->config, $config);
+        $this->server->serverSet($config);
     }
     /**
      * 启动server
@@ -89,10 +69,8 @@ class App
      * @DateTime 2017-08-25T12:16:50+0800
      * @return   [type]                   [description]
      */
-    public function start()
+    public function start($host='127.0.0.1', $port=9501, $mode=SWOOLE_PROCESS, $sockType=SWOOLE_SOCK_TCP)
     {
-        $this->server->server($this->config['listen'], $this->config['port']);
-        $this->server->serverSet($this->config['set']);
-        $this->server->start();
+        $this->server->start($host, $port, $mode, $sockType);
     }
 }

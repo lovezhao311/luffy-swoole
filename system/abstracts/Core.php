@@ -4,9 +4,23 @@ namespace luffyzhao\abstracts;
 use luffyzhao\App;
 use luffyzhao\Exception;
 use luffyzhao\librarys\route\After;
+use luffyzhao\librarys\route\Defer;
+use luffyzhao\librarys\route\Tick;
+use luffyzhao\db\Db;
 
 abstract class Core
 {
+    protected $route = null;
+
+    /**
+     * Core constructor.
+     * @param $route
+     */
+    function __construct($route)
+    {
+        $this->route = $route;
+    }
+
     /**
      * [task description]
      * @param  string $method [description]
@@ -29,7 +43,7 @@ abstract class Core
     protected function after(string $method, int $afterTimeMs, array $data = [])
     {
         $this->getApp()->after($afterTimeMs, function () use ($method, $data) {
-            $route = After::instance([
+            $route = new After([
                 'route' => $this->method($method),
                 'data' => $data,
             ]);
@@ -45,7 +59,7 @@ abstract class Core
     protected function tick(string $method, int $afterTimeMs, array $data = [])
     {
         $this->getApp()->tick($afterTimeMs, function () use ($method, $data) {
-            $route = After::instance([
+            $route = new Tick([
                 'route' => $this->method($method),
                 'data' => $data,
             ]);
@@ -60,7 +74,7 @@ abstract class Core
     protected function defer(string $method, array $data = [])
     {
         $this->getApp()->defer(function () use ($method, $data) {
-            $route = After::instance([
+            $route = new Defer([
                 'route' => $this->method($method),
                 'data' => $data,
             ]);
@@ -90,5 +104,13 @@ abstract class Core
     protected function getApp()
     {
         return App::instance()->getServer();
+    }
+
+    /**
+     * 获取数据curd
+     */
+    protected function getDb(){
+        $databases = Config::get('databases');
+        return Db::connect($databases);
     }
 }
