@@ -2,12 +2,12 @@
 namespace luffyzhao\abstracts;
 
 use luffyzhao\App;
+use luffyzhao\Config;
+use luffyzhao\db\Db;
 use luffyzhao\Exception;
 use luffyzhao\librarys\route\After;
 use luffyzhao\librarys\route\Defer;
 use luffyzhao\librarys\route\Tick;
-use luffyzhao\db\Db;
-use luffyzhao\Config;
 
 abstract class Core
 {
@@ -19,7 +19,7 @@ abstract class Core
      * Core constructor.
      * @param $route
      */
-    function __construct($route)
+    public function __construct($route)
     {
         $this->route = $route;
     }
@@ -114,21 +114,13 @@ abstract class Core
      * @param bool $relink 强制重连
      * @return Db
      */
-    protected function getDb($relink = false){
-        if($this->db === null || $relink){
+    protected function getDb($relink = false)
+    {
+        if ($this->db === null || $relink) {
             $this->db = null;
             $databases = Config::get('databases');
             $this->db = new Db($databases);
         }
         return $this->db;
-    }
-
-    /**
-     *  析构方法
-     */
-    public function __destruct()
-    {
-        $this->db = null;
-        $this->route = null;
     }
 }

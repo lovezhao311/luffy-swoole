@@ -149,11 +149,18 @@ abstract class Route
         if (class_exists($controller)) {
             $class = new $controller($this);
             if (method_exists($class, $uri['action'])) {
-                $res =  $class->{$uri['action']}();
+                $res = $class->{$uri['action']}();
                 unset($class);
                 return $res;
             }
         }
-        throw new Exception("controller:[{$uri['controller']}] action:[{$uri['action']}] not exists.",404);
+        throw new Exception("controller:[{$uri['controller']}] action:[{$uri['action']}] not exists.", 404);
+    }
+
+    public function __destruct()
+    {
+        $this->route = null;
+        $this->data = null;
+        $this->method = null;
     }
 }
