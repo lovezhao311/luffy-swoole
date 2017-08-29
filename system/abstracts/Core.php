@@ -7,10 +7,13 @@ use luffyzhao\librarys\route\After;
 use luffyzhao\librarys\route\Defer;
 use luffyzhao\librarys\route\Tick;
 use luffyzhao\db\Db;
+use luffyzhao\Config;
 
 abstract class Core
 {
     protected $route = null;
+
+    protected $db = null;
 
     /**
      * Core constructor.
@@ -108,9 +111,24 @@ abstract class Core
 
     /**
      * 获取数据curd
+     * @param bool $relink 强制重连
+     * @return Db
      */
-    protected function getDb(){
-        $databases = Config::get('databases');
-        return Db::connect($databases);
+    protected function getDb($relink = false){
+        if($this->db === null || $relink){
+            $this->db = null;
+            $databases = Config::get('databases');
+            $this->db = new Db($databases);
+        }
+        return $this->db;
+    }
+
+    /**
+     *  析构方法
+     */
+    public function __destruct()
+    {
+        $this->db = null;
+        $this->route = null;
     }
 }
