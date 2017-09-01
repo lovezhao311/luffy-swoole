@@ -2,75 +2,51 @@
 namespace luffyzhao;
 
 use luffyzhao\abstracts\Swoole;
+use luffyzhao\Config;
 
 class App
 {
     /**
-     * @var object 对象实例
-     */
-    protected static $instance;
-    /**
-     * 实例
+     * swoole 实例
      * @var null
      */
-    protected $server = null;
+    protected static $server = null;
+    /**
+     * databases 实例
+     * @var null
+     */
+    protected static $db = null;
 
     /**
-     * 初始化
-     * @access public
-     * @param array $data 参数
-     * @return luffyzhao\librarys\route\Task
-     */
-    public static function instance()
-    {
-
-        if (!isset(self::$instance)) {
-            self::$instance = new static();
-        }
-        return self::$instance;
-    }
-    /**
-     * 构造
-     * @param Swoole $swoole [description]
-     */
-    protected function __construct()
-    {}
-    /**
-     * 获取server
+     * 获取数据库
      * @return [type] [description]
      */
-    public function getServer()
+    public static function getDb()
     {
-        return $this->server->server();
+        if (self::$db == null) {
+            $databases = Config::get('databases');
+            if (empty($databases['type'])) {
+                throw new \InvalidArgumentException('Underfined db type');
+            }
+            $class = false !== strpos($databases['type'], '\\') ? $databases['type'] : '\\luffyzhao\\librarys\\databases\\' . ucwords($databases['type']);
+            self::$db = new $class($databases);
+        }
+        return self::$db;
     }
     /**
-     * 设置server类型
-     * @method   setServer
-     * @DateTime 2017-08-25T12:14:29+0800
-     * @param    Server                   $server [description]
+     * 设置swoole server
+     * @param [type] $server [description]
      */
-    public function setServer(Swoole $server)
+    public static function setServer($server)
     {
-        $this->server = $server;
+        self::$server = $server;
     }
     /**
-     * 设置配置
-     * @method   setConfig
-     * @DateTime 2017-08-25T12:18:16+0800
-     * @param    array                    $config [description]
+     * 获取swoole server
+     * @return [type] [description]
      */
-    public function setConfig(array $config)
+    public static function getServer()
     {
-        $this->server->serverSet($config);
-    }
-    /**
-     * 启动server
-     * @method   start
-     * @DateTime 2017-08-25T12:16:50+0800
-     * @return   [type]                   [description]
-     */
-    public function start($host='127.0.0.1', $port=9501, $mode=SWOOLE_PROCESS, $sockType=SWOOLE_SOCK_TCP)
-    {
-        $this->server->start($host, $port, $mode, $sockType);
+        return self::$server;
     }
 }

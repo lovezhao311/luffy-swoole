@@ -32,13 +32,13 @@ class Http extends Swoole
         // 指定swoole错误日志文件
         "log_file" => 'swoole.log',
         // 日志等级
-        "log_level" => 1
+        "log_level" => 1,
     ];
 
     /**
      * 设置server
      */
-    public function server($host='127.0.0.1', $port=9501, $mode=SWOOLE_PROCESS, $sockType=SWOOLE_SOCK_TCP)
+    public function server($host = '127.0.0.1', $port = 9501, $mode = SWOOLE_PROCESS, $sockType = SWOOLE_SOCK_TCP)
     {
         if (is_null($this->swoole)) {
             $this->swoole = new \Swoole\Http\Server($host, $port, $mode, $sockType);
@@ -69,11 +69,12 @@ class Http extends Swoole
      */
     public function onRequest(Request $request, Response $response)
     {
+        ob_start();
         try {
             $route = new HttpRoute($request);
             $result = $route->run();
         } catch (\Exception $e) {
-            switch ($e->getCode()){
+            switch ($e->getCode()) {
                 case 404:
                     $response->status($e->getCode());
                     break;
@@ -82,8 +83,8 @@ class Http extends Swoole
             }
             $result = $e->getMessage();
         }
-        unset($route);
         $response->end($result);
+        $this->obShow();
     }
 
 }

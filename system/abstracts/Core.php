@@ -2,8 +2,6 @@
 namespace luffyzhao\abstracts;
 
 use luffyzhao\App;
-use luffyzhao\Config;
-use luffyzhao\db\Db;
 use luffyzhao\Exception;
 use luffyzhao\librarys\route\After;
 use luffyzhao\librarys\route\Defer;
@@ -36,7 +34,7 @@ abstract class Core
             'data' => $params,
             'route' => $this->method($method),
         ];
-        $this->getApp()->task(json_encode($data));
+        App::getServer()->task(json_encode($data));
     }
     /**
      * 一次性定时器
@@ -45,7 +43,7 @@ abstract class Core
      */
     protected function after(string $method, int $afterTimeMs, array $data = [])
     {
-        $this->getApp()->after($afterTimeMs, function () use ($method, $data) {
+        App::getServer()->after($afterTimeMs, function () use ($method, $data) {
             $route = new After([
                 'route' => $this->method($method),
                 'data' => $data,
@@ -61,7 +59,7 @@ abstract class Core
      */
     protected function tick(string $method, int $afterTimeMs, array $data = [])
     {
-        $this->getApp()->tick($afterTimeMs, function () use ($method, $data) {
+        App::getServer()->tick($afterTimeMs, function () use ($method, $data) {
             $route = new Tick([
                 'route' => $this->method($method),
                 'data' => $data,
@@ -76,7 +74,7 @@ abstract class Core
      */
     protected function defer(string $method, array $data = [])
     {
-        $this->getApp()->defer(function () use ($method, $data) {
+        App::getServer()->defer(function () use ($method, $data) {
             $route = new Defer([
                 'route' => $this->method($method),
                 'data' => $data,
@@ -99,28 +97,5 @@ abstract class Core
             'controller' => $route[0],
             'action' => $route[1],
         ];
-    }
-    /**
-     * 获取server
-     * @return [type] [description]
-     */
-    protected function getApp()
-    {
-        return App::instance()->getServer();
-    }
-
-    /**
-     * 获取数据curd
-     * @param bool $relink 强制重连
-     * @return Db
-     */
-    protected function getDb($relink = false)
-    {
-        if ($this->db === null || $relink) {
-            $this->db = null;
-            $databases = Config::get('databases');
-            $this->db = new Db($databases);
-        }
-        return $this->db;
     }
 }

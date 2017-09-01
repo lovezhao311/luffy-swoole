@@ -1,13 +1,10 @@
 <?php
 include_once '../vendor/autoload.php';
 
-use luffyzhao\App;
-use luffyzhao\librarys\server\Http;
 use luffyzhao\Config;
+use luffyzhao\librarys\server\Http;
 
+$server = new Http();
 $http = Config::get('http');
-
-$app = App::instance();
-$app->setServer(new Http($http['host'], $http['port'],$http['mode'],$http['sockType']));
-$app->setConfig($http['set']);
-$app->start();
+$server->serverSet($http['set']);
+$server->start($http['host'], $http['port'], $http['mode'], $http['sockType']);

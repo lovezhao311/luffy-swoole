@@ -16,7 +16,7 @@ return [
         // task进程的最大任务数
         "task_max_request" => 5000,
         // task进程与worker进程之间通信的方式
-        "task_ipc_mode" => 2,
+        "task_ipc_mode" => 1,
         // 消息队列的KEY
         "message_queue_key" => 'luffyzhao-queue',
         // 数据包分发策略

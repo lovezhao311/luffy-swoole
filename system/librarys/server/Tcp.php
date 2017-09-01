@@ -31,7 +31,7 @@ class Tcp extends Swoole
         // 指定swoole错误日志文件
         "log_file" => 'swoole.log',
         // 日志等级
-        "log_level" => 0
+        "log_level" => 0,
     ];
 
     /**
@@ -47,12 +47,12 @@ class Tcp extends Swoole
         $this->swoole->on('workerError', [$this, 'onWorkerError']);
         $this->swoole->on('task', [$this, 'onTask']);
         $this->swoole->on('finish', [$this, 'onFinish']);
-        $this->swoole->on('receive',[$this,'onReceive']);
+        $this->swoole->on('receive', [$this, 'onReceive']);
     }
     /**
      * 设置server
      */
-    public function server($host='127.0.0.1', $port=9501, $mode=SWOOLE_PROCESS, $sockType=SWOOLE_SOCK_TCP)
+    public function server($host = '127.0.0.1', $port = 9501, $mode = SWOOLE_PROCESS, $sockType = SWOOLE_SOCK_TCP)
     {
         if (is_null($this->swoole)) {
             $this->swoole = new \Swoole\Server($host, $port, $mode, $sockType);
@@ -71,6 +71,7 @@ class Tcp extends Swoole
      */
     public function onReceive(\Swoole\Server $server, int $fd, int $fromId, string $data)
     {
+        ob_start();
         Debug::info('tcp start: fd:' . $fd . ' fromId:' . $fromId . ' data:' . $data);
         try {
             $route = new TcpRoute($data);
@@ -78,8 +79,8 @@ class Tcp extends Swoole
         } catch (\Exception $e) {
             Debug::info('task error:' . $e->getMessage());
         }
-        unset($route);
         $server->send($fd, $message);
         $server->close($fd);
+        $this->obShow();
     }
 }

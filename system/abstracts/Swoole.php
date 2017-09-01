@@ -1,6 +1,7 @@
 <?php
 namespace luffyzhao\abstracts;
 
+use luffyzhao\App;
 use luffyzhao\Debug;
 use luffyzhao\Error;
 use luffyzhao\librarys\route\Task;
@@ -32,14 +33,23 @@ abstract class Swoole
      * @DateTime 2017-08-25T12:10:41+0800
      * @return   [type]                   [description]
      */
-    public function start($host='127.0.0.1', $port=9501, $mode=SWOOLE_PROCESS, $sockType=SWOOLE_SOCK_TCP)
+    public function start($host = '127.0.0.1', $port = 9501, $mode = SWOOLE_PROCESS, $sockType = SWOOLE_SOCK_TCP)
     {
         $this->server($host, $port, $mode, $sockType);
         $this->swoole->set($this->config);
         $this->on();
         $this->swoole->start();
     }
-
+    /**
+     * 缓冲区内容输出
+     * @return [type] [description]
+     */
+    protected function obShow()
+    {
+        $result = ob_get_contents();
+        ob_end_clean();
+        echo "\n" . $result . "\n";
+    }
     /**
      * Server启动时调用
      * @method   onStart
@@ -73,7 +83,13 @@ abstract class Swoole
      */
     public function onWorkerStart(Server $server, int $workerId)
     {
-        $this->workerStartInit();
+        // 加载vendor
+        require realpath(dirname(__FILE__)) . '/../../vendor/autoload.php';
+        // 注册错误
+        Error::register();
+        // 存储server到App
+        App::setServer($server);
+        App::getDb();
         if ($server->taskworker) {
             Debug::info('task start,id:' . $workerId);
             cli_set_process_title("luffyzhao-swoole-task-{$workerId}");
@@ -196,14 +212,16 @@ abstract class Swoole
      */
     public function onTask(Server $server, int $taskId, int $workerId, string $data)
     {
+        ob_start();
         Debug::info('task start: taskId:' . $taskId . ' workerId:' . $workerId . ' data:' . $data);
         try {
             $route = new Task($data);
             $route->run();
-            return true;
+            $server->finish();
         } catch (\Exception $e) {
             Debug::info('task error:' . $e->getMessage());
         }
+        $this->obShow();
     }
     /**
      * 当worker进程投递的任务在taskWorker中完成
@@ -266,18 +284,5 @@ abstract class Swoole
     public function onManagerStop(Server $server)
     {
 
-    }
-    /**
-     * 子进程启动时全局操作
-     * @method   init
-     * @DateTime 2017-08-22T15:17:57+0800
-     * @return   [type]                   [description]
-     */
-    protected function workerStartInit()
-    {
-        // 加载vendor
-        require realpath(dirname(__FILE__)) . '/../../vendor/autoload.php';
-        // 注册错误
-        Error::register();
     }
 }

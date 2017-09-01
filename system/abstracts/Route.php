@@ -150,7 +150,6 @@ abstract class Route
             $class = new $controller($this);
             if (method_exists($class, $uri['action'])) {
                 $res = $class->{$uri['action']}();
-                unset($class);
                 return $res;
             }
         }
