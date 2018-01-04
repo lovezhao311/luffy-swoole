@@ -1,6 +1,7 @@
 <?php
 namespace luffyzhao\abstracts;
 
+use luffyzhao\App;
 use luffyzhao\Debug;
 use luffyzhao\Error;
 use luffyzhao\librarys\route\Task;
@@ -8,16 +9,59 @@ use Swoole\Server;
 
 abstract class Swoole
 {
+    protected $swoole = null;
+
     /**
-     * [build description]
-     * @param  [type] $server [description]
-     * @return [type]         [description]
+     * swoole配置
+     * @var array
      */
-    public function build($server)
+    protected $config = [];
+    /**
+     * serverhost
+     * @var string
+     */
+    protected $host = '';
+
+    protected $port = 9501;
+
+    protected $mode = SWOOLE_PROCESS;
+
+    protected $sockType = SWOOLE_SOCK_TCP;
+
+    /**
+     * [__construct description]
+     * @param array $config [description]
+     */
+    public function __construct(array $config = [])
     {
-        foreach ($this->on as $value) {
-            $server->on($value, [$this, 'on' . ucfirst($value)]);
-        }
+        $this->host = $config['host'] ?? '127.0.0.1';
+        $this->port = $config['port'] ?? 9501;
+        $this->mode = $config['mode'] ?? SWOOLE_PROCESS;
+        $this->sockType = $config['sockType'] ?? SWOOLE_SOCK_TCP;
+        $this->config = array_merge($this->config, $config['set'] ?? []);
+    }
+    /**
+     * 启动server
+     * @method   start
+     * @DateTime 2017-08-25T12:10:41+0800
+     * @return   [type]                   [description]
+     */
+    public function start()
+    {
+        $this->server();
+        $this->swoole->set($this->config);
+        $this->on();
+        $this->swoole->start();
+    }
+    /**
+     * 缓冲区内容输出
+     * @return [type] [description]
+     */
+    protected function obShow()
+    {
+        $result = ob_get_contents();
+        ob_end_clean();
+        echo "\n" . $result . "\n";
     }
     /**
      * Server启动时调用
@@ -28,7 +72,8 @@ abstract class Swoole
      */
     public function onStart(Server $server)
     {
-        $this->setProcessTitle('luffyzhao-' . $this->processTitle . '-master');
+        Debug::info('start:' . 'luffyzhao-swoole');
+        cli_set_process_title('luffyzhao-swoole');
     }
     /**
      * Server结束时调用
@@ -39,7 +84,7 @@ abstract class Swoole
      */
     public function onShutdown(Server $server)
     {
-        Debug::info('shutdown:luffyzhao-' . $this->processTitle . '-master');
+        Debug::info('shutdown:' . 'luffyzhao-swoole');
     }
     /**
      * 子进程启动时调用
@@ -55,13 +100,17 @@ abstract class Swoole
         require realpath(dirname(__FILE__)) . '/../../vendor/autoload.php';
         // 注册错误
         Error::register();
+        // 存储server到App
+        App::setServer($server);
+        App::getDb();
         if ($server->taskworker) {
-            $this->setProcessTitle("luffyzhao-{$this->processTitle}-task-{$workerId}");
+            Debug::info('task start,id:' . $workerId);
+            cli_set_process_title("luffyzhao-swoole-task-{$workerId}");
         } else {
-            $this->setProcessTitle("luffyzhao-{$this->processTitle}-worker-{$workerId}");
+            Debug::info('worker start,id:' . $workerId);
+            cli_set_process_title("luffyzhao-swoole-worker-{$workerId}");
         }
     }
-
     /**
      * 子进程结束时调用
      * @method   onWorkerStop
@@ -72,7 +121,7 @@ abstract class Swoole
      */
     public function onWorkerStop(Server $server, int $workerId)
     {
-        // 暂时什么都不做。。
+        Debug::info('stop,id:' . $workerId);
     }
     /**
      * 定时器触发时调用
@@ -87,7 +136,6 @@ abstract class Swoole
     {
         Debug::info('timer :' . $interval);
     }
-
     /**
      * 有新连接进入时调用
      * @method   onConnect
@@ -101,7 +149,33 @@ abstract class Swoole
     {
 
     }
+    /**
+     * 接收到数据时调用(除udp外)
+     * @method   onReceive
+     * @DateTime 2017-08-21T17:44:43+0800
+     * @param    Server                   $server    Server对象
+     * @param    int                      $fd        连接标识
+     * @param    int                      $fromId    ID线程
+     * @param    string                   $data      收到的数据内容，可能是文本或者二进制内容
+     * @return   viod
+     */
+    public function onReceive(Server $server, int $fd, int $fromId, string $data)
+    {
 
+    }
+    /**
+     * 接收到UDP数据包时调用
+     * @method   onPacket
+     * @DateTime 2017-08-21T17:46:17+0800
+     * @param    Server                   $server     Server对象
+     * @param    string                   $data       收到的数据内容，可能是文本或者二进制内容
+     * @param    array                    $clientInfo 客户端信息包括address/port/server_socket3项数据
+     * @return   viod
+     */
+    public function onPacket(Server $server, string $data, array $clientInfo)
+    {
+
+    }
     /**
      * TCP客户端连接关闭后调用。
      * @method   onClose
@@ -211,7 +285,7 @@ abstract class Swoole
      */
     public function onManagerStart(Server $server)
     {
-        $this->setProcessTitle("luffyzhao-" . $this->processTitle . '-manager');
+
     }
     /**
      * 管理进程停止时调用
@@ -222,31 +296,6 @@ abstract class Swoole
      */
     public function onManagerStop(Server $server)
     {
-        Debug::info('stop:luffyzhao manager');
-    }
 
-    /**
-     * 缓冲区内容输出
-     * @return [type] [description]
-     */
-    protected function obShow()
-    {
-        $result = ob_get_contents();
-        ob_end_clean();
-        echo "\n" . $result . "\n";
-    }
-
-    /**
-     * set process title
-     * @param string $value [description]
-     */
-    protected function setProcessTitle($title)
-    {
-        if (function_exists('cli_set_process_title')) {
-            @cli_set_process_title($title);
-        } else {
-            @swoole_set_process_name($title);
-        }
-        Debug::info('start:' . $title);
     }
 }

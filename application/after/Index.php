@@ -10,6 +10,11 @@ class Index extends Core
 {
     public function index()
     {
-        echo "after " . time() . " \n";
+        echo "index:after " . time() . " \n";
+    }
+
+    public function index2()
+    {
+        echo "index2:after " . time() . " \n";
     }
 }
